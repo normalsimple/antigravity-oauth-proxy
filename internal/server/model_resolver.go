@@ -19,6 +19,10 @@ const (
 
 func resolveModelForThinking(model string, req antigravity.GeminiInternalRequest) string {
 	modelLower := strings.ToLower(strings.TrimSpace(model))
+	if isKnownUpstreamModelID(modelLower) {
+		return modelLower
+	}
+
 	thinkingLevel := normalizedThinkingLevel(req)
 
 	switch {
@@ -55,6 +59,29 @@ func resolveModelForThinking(model string, req antigravity.GeminiInternalRequest
 
 	default:
 		return model
+	}
+}
+
+func isKnownUpstreamModelID(modelLower string) bool {
+	switch modelLower {
+	case "claude-opus-4-6-thinking",
+		"claude-sonnet-4-6",
+		"gemini-2.5-flash",
+		"gemini-2.5-flash-lite",
+		"gemini-2.5-flash-thinking",
+		"gemini-2.5-pro",
+		modelGemini3Flash,
+		modelGemini35FlashHigh,
+		modelGemini31FlashImage,
+		modelGemini31FlashLite,
+		modelGemini31ProHigh,
+		modelGemini31ProLow,
+		modelGemini35FlashLow,
+		modelGemini35FlashMedium,
+		"gemini-pro-agent":
+		return true
+	default:
+		return false
 	}
 }
 

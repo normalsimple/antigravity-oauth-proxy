@@ -38,6 +38,12 @@ func TestResolveModelForThinking(t *testing.T) {
 			expected:      "gemini-3.1-pro-high",
 		},
 		{
+			name:          "Exact Gemini 3.1 Pro high stays high",
+			model:         "gemini-3.1-pro-high",
+			thinkingLevel: "LOW",
+			expected:      "gemini-3.1-pro-high",
+		},
+		{
 			name:          "Gemini 3 Flash ignores thinking",
 			model:         "gemini-3-flash",
 			thinkingLevel: "HIGH",
@@ -74,6 +80,18 @@ func TestResolveModelForThinking(t *testing.T) {
 			expected:      "gemini-3-flash-agent",
 		},
 		{
+			name:          "Exact Gemini 3.5 Flash high stays high",
+			model:         "gemini-3-flash-agent",
+			thinkingLevel: "MINIMAL",
+			expected:      "gemini-3-flash-agent",
+		},
+		{
+			name:          "Exact Gemini 3.5 Flash medium stays medium",
+			model:         "gemini-3.5-flash-low",
+			thinkingLevel: "HIGH",
+			expected:      "gemini-3.5-flash-low",
+		},
+		{
 			name:          "Gemini 3.1 Flash Lite canonical",
 			model:         "gemini-3.1-flash-lite",
 			thinkingLevel: "HIGH",
@@ -86,10 +104,10 @@ func TestResolveModelForThinking(t *testing.T) {
 			expected:      "gemini-3.1-flash-lite",
 		},
 		{
-			name:          "Gemini 3.1 Flash Lite legacy alias",
+			name:          "Gemini 3.1 Flash Lite legacy alias direct match",
 			model:         "gemini-2.5-flash-thinking",
 			thinkingLevel: "MEDIUM",
-			expected:      "gemini-3.1-flash-lite",
+			expected:      "gemini-2.5-flash-thinking",
 		},
 		{
 			name:          "Gemini 3.1 Flash Image",
