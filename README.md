@@ -33,7 +33,7 @@ To run locally, or to deploy to Cloudflare Workers
 Option 1 (recommended): prebuilt binary via npm (macOS, Linux, Windows)
 
 ```bash
-npm install -g @dvcrn/antigravity-proxy
+npm install -g antigravity-proxy
 ```
 
 Option 2: install from source with Go
