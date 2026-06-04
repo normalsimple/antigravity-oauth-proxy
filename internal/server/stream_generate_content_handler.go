@@ -372,5 +372,10 @@ func geminiThinkingConfigFields(req antigravity.GeminiInternalRequest) (string, 
 		thinkingBudget = *thinkingConfig.ThinkingBudget
 	}
 
-	return thinkingConfig.ThinkingLevel, thinkingBudget, thinkingConfig.IncludeThoughts, true
+	includeThoughts := false
+	if thinkingConfig.IncludeThoughts != nil {
+		includeThoughts = *thinkingConfig.IncludeThoughts
+	}
+
+	return thinkingConfig.ThinkingLevel, thinkingBudget, includeThoughts, true
 }

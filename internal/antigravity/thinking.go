@@ -40,7 +40,4 @@ func applyGeminiThinkingPreset(req *GenerateContentRequest) {
 	}
 
 	req.Request.GenerationConfig.ThinkingConfig.ThinkingLevel = level
-	// Ensure we don't accidentally send a disabling budget to models that
-	// require thinking (e.g., some Gemini variants reject thinkingBudget=0).
-	req.Request.GenerationConfig.ThinkingConfig.ThinkingBudget = nil
 }

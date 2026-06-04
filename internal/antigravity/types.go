@@ -145,7 +145,7 @@ func (t *Tool) UnmarshalJSON(b []byte) error {
 // Gemini 3 uses thinkingLevel ("low"/"high"). Gemini 2.5 uses thinkingBudget.
 // We model both to preserve/forward client intent.
 type ThinkingConfig struct {
-	IncludeThoughts bool   `json:"includeThoughts,omitempty"`
+	IncludeThoughts *bool  `json:"includeThoughts,omitempty"`
 	ThinkingLevel   string `json:"thinkingLevel,omitempty"`
 	ThinkingBudget  *int   `json:"thinkingBudget,omitempty"`
 }

@@ -34,6 +34,7 @@ func prepareAntigravityRequest(req *GenerateContentRequest) {
 	}
 
 	applyGeminiThinkingPreset(req)
+	ensureAntigravityThinkingDefaults(req)
 
 	if missing := fillMissingParameters(req.Request.Tools); missing > 0 {
 		logger.Get().Warn().
@@ -77,7 +78,9 @@ func logPreparedThinkingConfig(req *GenerateContentRequest) {
 			hasThinkingConfig = true
 			thinkingConfig := req.Request.GenerationConfig.ThinkingConfig
 			thinkingLevel = thinkingConfig.ThinkingLevel
-			includeThoughts = thinkingConfig.IncludeThoughts
+			if thinkingConfig.IncludeThoughts != nil {
+				includeThoughts = *thinkingConfig.IncludeThoughts
+			}
 			if thinkingConfig.ThinkingBudget != nil {
 				thinkingBudget = *thinkingConfig.ThinkingBudget
 			}
@@ -94,6 +97,28 @@ func logPreparedThinkingConfig(req *GenerateContentRequest) {
 		Int("max_output_tokens", maxOutputTokens).
 		Float64("temperature", temperature).
 		Msg("Prepared CloudCode thinking config")
+}
+
+func ensureAntigravityThinkingDefaults(req *GenerateContentRequest) {
+	if req == nil {
+		return
+	}
+	if req.Request.GenerationConfig == nil {
+		req.Request.GenerationConfig = &GeminiGenerationConfig{}
+	}
+	if req.Request.GenerationConfig.ThinkingConfig == nil {
+		req.Request.GenerationConfig.ThinkingConfig = &ThinkingConfig{}
+	}
+
+	thinkingConfig := req.Request.GenerationConfig.ThinkingConfig
+	if thinkingConfig.IncludeThoughts == nil {
+		includeThoughts := true
+		thinkingConfig.IncludeThoughts = &includeThoughts
+	}
+	if thinkingConfig.ThinkingBudget == nil {
+		thinkingBudget := 10001
+		thinkingConfig.ThinkingBudget = &thinkingBudget
+	}
 }
 
 func buildAntigravitySystemInstruction(existing *SystemInstruction) *SystemInstruction {

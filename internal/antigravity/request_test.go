@@ -59,6 +59,55 @@ func TestPrepareAntigravityRequestMatchesCLIShape(t *testing.T) {
 	}
 }
 
+func TestPrepareAntigravityRequestDefaultsThinkingConfig(t *testing.T) {
+	req := &GenerateContentRequest{
+		Model: "gemini-3.1-pro-low",
+		Request: GeminiInternalRequest{
+			Contents: []Content{{Role: "user", Parts: []ContentPart{{Text: "hello"}}}},
+		},
+	}
+
+	prepareAntigravityRequest(req)
+
+	if req.Request.GenerationConfig == nil || req.Request.GenerationConfig.ThinkingConfig == nil {
+		t.Fatal("ThinkingConfig was not defaulted")
+	}
+	thinkingConfig := req.Request.GenerationConfig.ThinkingConfig
+	if thinkingConfig.IncludeThoughts == nil || !*thinkingConfig.IncludeThoughts {
+		t.Fatalf("IncludeThoughts = %v, want true", thinkingConfig.IncludeThoughts)
+	}
+	if thinkingConfig.ThinkingBudget == nil || *thinkingConfig.ThinkingBudget != 10001 {
+		t.Fatalf("ThinkingBudget = %v, want 10001", thinkingConfig.ThinkingBudget)
+	}
+}
+
+func TestPrepareAntigravityRequestPreservesThinkingConfig(t *testing.T) {
+	includeThoughts := false
+	thinkingBudget := 123
+	req := &GenerateContentRequest{
+		Model: "gemini-3.1-pro-low",
+		Request: GeminiInternalRequest{
+			Contents: []Content{{Role: "user", Parts: []ContentPart{{Text: "hello"}}}},
+			GenerationConfig: &GeminiGenerationConfig{
+				ThinkingConfig: &ThinkingConfig{
+					IncludeThoughts: &includeThoughts,
+					ThinkingBudget:  &thinkingBudget,
+				},
+			},
+		},
+	}
+
+	prepareAntigravityRequest(req)
+
+	thinkingConfig := req.Request.GenerationConfig.ThinkingConfig
+	if thinkingConfig.IncludeThoughts == nil || *thinkingConfig.IncludeThoughts {
+		t.Fatalf("IncludeThoughts = %v, want false", thinkingConfig.IncludeThoughts)
+	}
+	if thinkingConfig.ThinkingBudget == nil || *thinkingConfig.ThinkingBudget != 123 {
+		t.Fatalf("ThinkingBudget = %v, want 123", thinkingConfig.ThinkingBudget)
+	}
+}
+
 func TestLoadCodeAssistResponseParsesPaidTier(t *testing.T) {
 	body := []byte(`{
 		"currentTier":{"id":"free-tier","name":"Antigravity","description":"Gemini-powered code suggestions"},
