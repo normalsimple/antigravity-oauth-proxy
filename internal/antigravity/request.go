@@ -33,7 +33,11 @@ func prepareAntigravityRequest(req *GenerateContentRequest) {
 			Msg("Removed empty content parts from request")
 	}
 
-	applyGeminiThinkingPreset(req)
+	if modelEncodesThinkingLevel(req.Model) {
+		clearRequestThinkingLevel(req)
+	} else {
+		applyGeminiThinkingPreset(req)
+	}
 	ensureAntigravityThinkingDefaults(req)
 
 	if missing := fillMissingParameters(req.Request.Tools); missing > 0 {
@@ -97,6 +101,37 @@ func logPreparedThinkingConfig(req *GenerateContentRequest) {
 		Int("max_output_tokens", maxOutputTokens).
 		Float64("temperature", temperature).
 		Msg("Prepared CloudCode thinking config")
+}
+
+func modelEncodesThinkingLevel(model string) bool {
+	switch strings.ToLower(strings.TrimSpace(model)) {
+	case "gemini-3.1-pro-low",
+		"gemini-3.1-pro-high",
+		"gemini-3.5-flash-extra-low",
+		"gemini-3.5-flash-low",
+		"gemini-3-flash-agent",
+		"gemini-pro-agent":
+		return true
+	default:
+		return false
+	}
+}
+
+func clearRequestThinkingLevel(req *GenerateContentRequest) {
+	if req == nil || req.Request.GenerationConfig == nil || req.Request.GenerationConfig.ThinkingConfig == nil {
+		return
+	}
+
+	thinkingConfig := req.Request.GenerationConfig.ThinkingConfig
+	if strings.TrimSpace(thinkingConfig.ThinkingLevel) == "" {
+		return
+	}
+
+	logger.Get().Info().
+		Str("model", req.Model).
+		Str("thinking_level", thinkingConfig.ThinkingLevel).
+		Msg("Cleared explicit thinking level because model ID encodes thinking effort")
+	thinkingConfig.ThinkingLevel = ""
 }
 
 func ensureAntigravityThinkingDefaults(req *GenerateContentRequest) {

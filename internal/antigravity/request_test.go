@@ -81,6 +81,35 @@ func TestPrepareAntigravityRequestDefaultsThinkingConfig(t *testing.T) {
 	}
 }
 
+func TestPrepareAntigravityRequestClearsThinkingLevelForEncodedModel(t *testing.T) {
+	includeThoughts := false
+	req := &GenerateContentRequest{
+		Model: "gemini-3.1-pro-high",
+		Request: GeminiInternalRequest{
+			Contents: []Content{{Role: "user", Parts: []ContentPart{{Text: "hello"}}}},
+			GenerationConfig: &GeminiGenerationConfig{
+				ThinkingConfig: &ThinkingConfig{
+					IncludeThoughts: &includeThoughts,
+					ThinkingLevel:   "LOW",
+				},
+			},
+		},
+	}
+
+	prepareAntigravityRequest(req)
+
+	thinkingConfig := req.Request.GenerationConfig.ThinkingConfig
+	if thinkingConfig.ThinkingLevel != "" {
+		t.Fatalf("ThinkingLevel = %q, want empty", thinkingConfig.ThinkingLevel)
+	}
+	if thinkingConfig.IncludeThoughts == nil || *thinkingConfig.IncludeThoughts {
+		t.Fatalf("IncludeThoughts = %v, want false", thinkingConfig.IncludeThoughts)
+	}
+	if thinkingConfig.ThinkingBudget == nil || *thinkingConfig.ThinkingBudget != 10001 {
+		t.Fatalf("ThinkingBudget = %v, want 10001", thinkingConfig.ThinkingBudget)
+	}
+}
+
 func TestPrepareAntigravityRequestPreservesThinkingConfig(t *testing.T) {
 	includeThoughts := false
 	thinkingBudget := 123
