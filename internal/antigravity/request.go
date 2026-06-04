@@ -3,7 +3,9 @@ package antigravity
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/dvcrn/antigravity-proxy/internal/logger"
 	"github.com/google/uuid"
@@ -17,7 +19,7 @@ func prepareAntigravityRequest(req *GenerateContentRequest) {
 	req.UserAgent = RequestUserAgent
 	req.RequestType = RequestTypeAgent
 	if req.RequestID == "" {
-		req.RequestID = "agent-" + uuid.NewString()
+		req.RequestID = newAntigravityRequestID()
 	}
 
 	if req.Request.SessionID == "" {
@@ -53,12 +55,50 @@ func prepareAntigravityRequest(req *GenerateContentRequest) {
 	}
 
 	req.Request.SystemInstruction = buildAntigravitySystemInstruction(req.Request.SystemInstruction)
+	logPreparedThinkingConfig(req)
+}
+
+func logPreparedThinkingConfig(req *GenerateContentRequest) {
+	if req == nil {
+		return
+	}
+
+	maxOutputTokens := 0
+	temperature := 0.0
+	thinkingLevel := ""
+	includeThoughts := false
+	var thinkingBudget interface{}
+	hasGenerationConfig := req.Request.GenerationConfig != nil
+	hasThinkingConfig := false
+	if req.Request.GenerationConfig != nil {
+		maxOutputTokens = req.Request.GenerationConfig.MaxOutputTokens
+		temperature = req.Request.GenerationConfig.Temperature
+		if req.Request.GenerationConfig.ThinkingConfig != nil {
+			hasThinkingConfig = true
+			thinkingConfig := req.Request.GenerationConfig.ThinkingConfig
+			thinkingLevel = thinkingConfig.ThinkingLevel
+			includeThoughts = thinkingConfig.IncludeThoughts
+			if thinkingConfig.ThinkingBudget != nil {
+				thinkingBudget = *thinkingConfig.ThinkingBudget
+			}
+		}
+	}
+
+	logger.Get().Info().
+		Str("model", req.Model).
+		Bool("has_generation_config", hasGenerationConfig).
+		Bool("has_thinking_config", hasThinkingConfig).
+		Str("thinking_level", thinkingLevel).
+		Interface("thinking_budget", thinkingBudget).
+		Bool("include_thoughts", includeThoughts).
+		Int("max_output_tokens", maxOutputTokens).
+		Float64("temperature", temperature).
+		Msg("Prepared CloudCode thinking config")
 }
 
 func buildAntigravitySystemInstruction(existing *SystemInstruction) *SystemInstruction {
 	parts := []ContentPart{
-		{Text: SystemInstructionText},
-		{Text: "Please ignore the following [ignore]" + SystemInstructionText + "[/ignore]"},
+		{Text: strings.TrimSpace(SystemInstructionText)},
 	}
 
 	if existing != nil {
@@ -73,6 +113,12 @@ func buildAntigravitySystemInstruction(existing *SystemInstruction) *SystemInstr
 		Role:  "user",
 		Parts: parts,
 	}
+}
+
+func newAntigravityRequestID() string {
+	conversationID := uuid.NewString()
+	trajectoryID := uuid.NewString()
+	return fmt.Sprintf("agent/%s/%d/%s/1", conversationID, time.Now().UnixMilli(), trajectoryID)
 }
 
 func deriveSessionID(contents []Content) string {

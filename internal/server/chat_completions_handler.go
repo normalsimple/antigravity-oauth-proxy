@@ -116,16 +116,10 @@ func (s *Server) chatCompletionRequestStream(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// Normalize model name for CloudCode compatibility
-	normalizedModelName := normalizeModelName(gemReq.Model)
-	originalModel := gemReq.Model
-	gemReq.Model = normalizedModelName
-	if gemReq.Model != originalModel {
-		logger.Get().Info().
-			Str("original_model", originalModel).
-			Str("normalized_model", normalizedModelName).
-			Msg("Normalized model for CloudCode")
-	}
+	requestedModel := gemReq.Model
+	resolvedModel := resolveModelForThinking(requestedModel, gemReq.Request)
+	logGeminiThinkingConfig("incoming OpenAI stream", requestedModel, resolvedModel, gemReq.Request)
+	gemReq.Model = resolvedModel
 
 	// Prepare SSE response
 	w.Header().Del("Content-Length")
@@ -407,16 +401,10 @@ func (s *Server) chatCompletionRequest(w http.ResponseWriter, r *http.Request, r
 		return
 	}
 
-	// Normalize model name
-	normalizedModelName := normalizeModelName(gemReq.Model)
-	originalModel := gemReq.Model
-	gemReq.Model = normalizedModelName
-	if gemReq.Model != originalModel {
-		logger.Get().Info().
-			Str("original_model", originalModel).
-			Str("normalized_model", normalizedModelName).
-			Msg("Normalized model for CloudCode")
-	}
+	requestedModel := gemReq.Model
+	resolvedModel := resolveModelForThinking(requestedModel, gemReq.Request)
+	logGeminiThinkingConfig("incoming OpenAI non-stream", requestedModel, resolvedModel, gemReq.Request)
+	gemReq.Model = resolvedModel
 
 	// Call non-streaming GenerateContent
 	apiStart := time.Now()

@@ -49,5 +49,4 @@ run = "bunx wrangler dev"
 
 [tools]
 go = "1.25.7"
-node = "20"
 goreleaser = "latest"

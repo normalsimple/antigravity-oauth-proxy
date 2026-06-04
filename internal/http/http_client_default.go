@@ -20,9 +20,11 @@ func NewHTTPClient() HTTPClient {
 			MaxIdleConnsPerHost: 10,
 			IdleConnTimeout:     90 * time.Second,
 			TLSHandshakeTimeout: 10 * time.Second,
-			DisableCompression:  true, // Important for SSE
-			// Enable HTTP/2
-			ForceAttemptHTTP2: true,
+			// Leave response compression enabled so net/http sends the same
+			// Accept-Encoding: gzip header as Antigravity CLI and transparently
+			// decompresses upstream responses.
+			DisableCompression: false,
+			ForceAttemptHTTP2:  false,
 		},
 	}
 }

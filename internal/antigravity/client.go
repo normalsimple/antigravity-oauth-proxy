@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/dvcrn/antigravity-proxy/internal/credentials"
 	serverhttp "github.com/dvcrn/antigravity-proxy/internal/http"
@@ -91,6 +92,11 @@ func (c *Client) doRequestWithToken(ctx context.Context, method string, url stri
 	}
 
 	ApplyHeaders(req.Header, token, accept)
+	req.Host = req.URL.Host
+	if strings.EqualFold(accept, "text/event-stream") {
+		req.ContentLength = -1
+		req.TransferEncoding = []string{"chunked"}
+	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

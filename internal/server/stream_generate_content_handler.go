@@ -85,14 +85,17 @@ func (s *Server) handleGenerateContent(w http.ResponseWriter, r *http.Request, m
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
+	resolvedModel := resolveModelForThinking(model, requestBody)
+	logGeminiThinkingConfig("incoming generateContent", model, resolvedModel, requestBody)
 
 	logger.Get().Debug().
-		Str("model", model).
+		Str("model", resolvedModel).
+		Str("requested_model", model).
 		Int("body_size", len(body)).
 		Msg("Calling antigravity client GenerateContent")
 
 	genReq := &antigravity.GenerateContentRequest{
-		Model:   model,
+		Model:   resolvedModel,
 		Project: s.projectID,
 		Request: requestBody,
 	}
@@ -102,7 +105,8 @@ func (s *Server) handleGenerateContent(w http.ResponseWriter, r *http.Request, m
 	if err != nil {
 		logger.Get().Error().
 			Err(err).
-			Str("model", model).
+			Str("model", resolvedModel).
+			Str("requested_model", model).
 			Dur("api_call_duration", time.Since(apiCallStart)).
 			Msg("GenerateContent failed")
 
@@ -133,7 +137,8 @@ func (s *Server) handleGenerateContent(w http.ResponseWriter, r *http.Request, m
 	}
 
 	logger.Get().Info().
-		Str("model", model).
+		Str("model", resolvedModel).
+		Str("requested_model", model).
 		Dur("total_duration", time.Since(startTime)).
 		Dur("api_call_duration", time.Since(apiCallStart)).
 		Msg("generateContent completed")
@@ -160,10 +165,12 @@ func (s *Server) handleStreamGenerateContent(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
+	resolvedModel := resolveModelForThinking(model, requestBody)
+	logGeminiThinkingConfig("incoming streamGenerateContent", model, resolvedModel, requestBody)
 
 	// Build CloudCode request wrapper
 	genReq := &antigravity.GenerateContentRequest{
-		Model:   model,
+		Model:   resolvedModel,
 		Project: s.projectID,
 		Request: requestBody,
 	}
@@ -174,7 +181,8 @@ func (s *Server) handleStreamGenerateContent(w http.ResponseWriter, r *http.Requ
 	if err := s.antigravityClient.StreamGenerateContent(r.Context(), genReq, lines); err != nil {
 		logger.Get().Error().
 			Err(err).
-			Str("model", model).
+			Str("model", resolvedModel).
+			Str("requested_model", model).
 			Dur("api_call_duration", time.Since(apiCallStart)).
 			Msg("StreamGenerateContent failed")
 		// Emit concise request summary to aid debugging without flooding logs
@@ -219,8 +227,10 @@ func (s *Server) handleStreamGenerateContent(w http.ResponseWriter, r *http.Requ
 		if req.GenerationConfig != nil {
 			maxTok = req.GenerationConfig.MaxOutputTokens
 		}
+		thinkingLevel, thinkingBudget, includeThoughts, hasThinkingConfig := geminiThinkingConfigFields(req)
 		logger.Get().Debug().
-			Str("model", model).
+			Str("model", resolvedModel).
+			Str("requested_model", model).
 			Int("contents", len(req.Contents)).
 			Int("user_messages", userMsgs).
 			Int("model_messages", modelMsgs).
@@ -231,6 +241,10 @@ func (s *Server) handleStreamGenerateContent(w http.ResponseWriter, r *http.Requ
 			Int("tools", len(req.Tools)).
 			Int("function_declarations", fnDecls).
 			Int("max_output_tokens", maxTok).
+			Bool("has_thinking_config", hasThinkingConfig).
+			Str("thinking_level", thinkingLevel).
+			Interface("thinking_budget", thinkingBudget).
+			Bool("include_thoughts", includeThoughts).
 			Msg("Upstream request summary (on error)")
 
 		var upstreamErr *antigravity.UpstreamError
@@ -315,8 +329,48 @@ streamLoop:
 	}
 
 	logger.Get().Info().
-		Str("model", model).
+		Str("model", resolvedModel).
+		Str("requested_model", model).
 		Dur("total_duration", time.Since(startTime)).
 		Dur("api_call_duration", time.Since(apiCallStart)).
 		Msg("streamGenerateContent completed")
+}
+
+func logGeminiThinkingConfig(context string, requestedModel string, resolvedModel string, req antigravity.GeminiInternalRequest) {
+	thinkingLevel, thinkingBudget, includeThoughts, hasThinkingConfig := geminiThinkingConfigFields(req)
+	maxOutputTokens := 0
+	temperature := 0.0
+	hasGenerationConfig := req.GenerationConfig != nil
+	if req.GenerationConfig != nil {
+		maxOutputTokens = req.GenerationConfig.MaxOutputTokens
+		temperature = req.GenerationConfig.Temperature
+	}
+
+	logger.Get().Info().
+		Str("context", context).
+		Str("requested_model", requestedModel).
+		Str("resolved_model", resolvedModel).
+		Bool("model_resolved", requestedModel != resolvedModel).
+		Bool("has_generation_config", hasGenerationConfig).
+		Bool("has_thinking_config", hasThinkingConfig).
+		Str("thinking_level", thinkingLevel).
+		Interface("thinking_budget", thinkingBudget).
+		Bool("include_thoughts", includeThoughts).
+		Int("max_output_tokens", maxOutputTokens).
+		Float64("temperature", temperature).
+		Msg("Gemini thinking config")
+}
+
+func geminiThinkingConfigFields(req antigravity.GeminiInternalRequest) (string, interface{}, bool, bool) {
+	if req.GenerationConfig == nil || req.GenerationConfig.ThinkingConfig == nil {
+		return "", nil, false, false
+	}
+
+	thinkingConfig := req.GenerationConfig.ThinkingConfig
+	var thinkingBudget interface{}
+	if thinkingConfig.ThinkingBudget != nil {
+		thinkingBudget = *thinkingConfig.ThinkingBudget
+	}
+
+	return thinkingConfig.ThinkingLevel, thinkingBudget, thinkingConfig.IncludeThoughts, true
 }

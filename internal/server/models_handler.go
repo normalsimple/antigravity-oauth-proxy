@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/dvcrn/antigravity-proxy/internal/logger"
 )
@@ -13,8 +12,6 @@ import (
 type openAIModel struct {
 	ID          string `json:"id"`
 	Object      string `json:"object"`
-	Created     int64  `json:"created"`
-	OwnedBy     string `json:"owned_by"`
 	Description string `json:"description,omitempty"`
 }
 
@@ -44,7 +41,6 @@ func (s *Server) modelsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	created := time.Now().Unix()
 	models := make([]openAIModel, 0, len(data.Models))
 	for modelID, modelData := range data.Models {
 		if !isSupportedModel(modelID) {
@@ -57,8 +53,6 @@ func (s *Server) modelsHandler(w http.ResponseWriter, r *http.Request) {
 		models = append(models, openAIModel{
 			ID:          modelID,
 			Object:      "model",
-			Created:     created,
-			OwnedBy:     "anthropic",
 			Description: description,
 		})
 	}
