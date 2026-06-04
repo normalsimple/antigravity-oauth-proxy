@@ -3,7 +3,7 @@ package credentials
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -115,7 +115,7 @@ func (f *FileProvider) SaveCredentials(creds *OAuthCredentials) error {
 	}
 
 	// Write to file
-	if err := ioutil.WriteFile(f.filePath, data, 0o600); err != nil {
+	if err := os.WriteFile(f.filePath, data, 0o600); err != nil {
 		return fmt.Errorf("failed to write credentials to %s: %w", f.filePath, err)
 	}
 
@@ -154,7 +154,7 @@ func (f *FileProvider) RefreshToken() error {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}

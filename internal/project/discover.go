@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -200,7 +200,7 @@ func callEndpoint(provider credentials.CredentialsProvider, method string, body 
 				return nil, fmt.Errorf("failed to make request after token refresh: %w", err)
 			}
 		}
-		respBody, err := ioutil.ReadAll(resp.Body)
+		respBody, err := io.ReadAll(resp.Body)
 		resp.Body.Close()
 		if err != nil {
 			lastErr = err

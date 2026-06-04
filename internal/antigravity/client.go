@@ -6,7 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 
@@ -129,7 +129,7 @@ func (c *Client) LoadCodeAssist() (*LoadCodeAssistResponse, error) {
 			continue
 		}
 
-		respBody, err := ioutil.ReadAll(resp.Body)
+		respBody, err := io.ReadAll(resp.Body)
 		resp.Body.Close()
 		if err != nil {
 			lastErr = fmt.Errorf("could not read response body: %w", err)
@@ -179,7 +179,7 @@ func (c *Client) GenerateContent(req *GenerateContentRequest) (*GenerateContentR
 			continue
 		}
 
-		respBody, err := ioutil.ReadAll(resp.Body)
+		respBody, err := io.ReadAll(resp.Body)
 		resp.Body.Close()
 		if err != nil {
 			lastErr = fmt.Errorf("could not read response body: %w", err)
@@ -237,7 +237,7 @@ func (c *Client) StreamGenerateContent(ctx context.Context, req *GenerateContent
 		}
 
 		if resp.StatusCode != http.StatusOK {
-			respBody, readErr := ioutil.ReadAll(resp.Body)
+			respBody, readErr := io.ReadAll(resp.Body)
 			resp.Body.Close()
 			if readErr != nil {
 				lastErr = fmt.Errorf("streamGenerateContent failed with status %d and read error: %v", resp.StatusCode, readErr)
