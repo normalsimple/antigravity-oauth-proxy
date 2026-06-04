@@ -1,6 +1,7 @@
 package antigravity
 
 import (
+	"encoding/json"
 	"net/http"
 	"regexp"
 	"strings"
@@ -55,6 +56,41 @@ func TestPrepareAntigravityRequestMatchesCLIShape(t *testing.T) {
 	}
 	if parts[1].Text != "client system" {
 		t.Fatalf("existing system part = %q, want client system", parts[1].Text)
+	}
+}
+
+func TestLoadCodeAssistResponseParsesPaidTier(t *testing.T) {
+	body := []byte(`{
+		"currentTier":{"id":"free-tier","name":"Antigravity","description":"Gemini-powered code suggestions"},
+		"allowedTiers":[{"id":"free-tier","name":"Antigravity","isDefault":true}],
+		"cloudaicompanionProject":"aesthetic-container-3v00q",
+		"gcpManaged":false,
+		"upgradeSubscriptionUri":"https://codeassist.google.com/upgrade",
+		"paidTier":{
+			"id":"g1-pro-tier",
+			"name":"Google AI Pro",
+			"description":"Google AI Pro",
+			"upgradeSubscriptionUri":"https://antigravity.google/g1-upgrade",
+			"upgradeSubscriptionText":"You can upgrade to a Google AI Ultra plan.",
+			"availableCredits":[{"creditType":"GOOGLE_ONE_AI","creditAmount":"1000","minimumCreditAmountForUsage":"50"}]
+		}
+	}`)
+
+	var resp LoadCodeAssistResponse
+	if err := json.Unmarshal(body, &resp); err != nil {
+		t.Fatal(err)
+	}
+	if resp.UpgradeSubscriptionURI != "https://codeassist.google.com/upgrade" {
+		t.Fatalf("UpgradeSubscriptionURI = %q", resp.UpgradeSubscriptionURI)
+	}
+	if resp.PaidTier == nil {
+		t.Fatal("PaidTier is nil")
+	}
+	if resp.PaidTier.ID != "g1-pro-tier" {
+		t.Fatalf("PaidTier.ID = %q", resp.PaidTier.ID)
+	}
+	if len(resp.PaidTier.AvailableCredits) != 1 || resp.PaidTier.AvailableCredits[0].CreditAmount != "1000" {
+		t.Fatalf("AvailableCredits = %#v", resp.PaidTier.AvailableCredits)
 	}
 }
 

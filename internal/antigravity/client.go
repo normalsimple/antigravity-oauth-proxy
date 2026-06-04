@@ -110,9 +110,7 @@ func (c *Client) doRequestWithToken(ctx context.Context, method string, url stri
 func (c *Client) LoadCodeAssist() (*LoadCodeAssistResponse, error) {
 	requestBody := LoadCodeAssistRequest{
 		Metadata: Metadata{
-			IdeType:    "IDE_UNSPECIFIED",
-			Platform:   "PLATFORM_UNSPECIFIED",
-			PluginType: "GEMINI",
+			IdeType: "ANTIGRAVITY",
 		},
 	}
 

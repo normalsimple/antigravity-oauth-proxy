@@ -165,9 +165,9 @@ type LoadCodeAssistRequest struct {
 
 // Metadata contains metadata about the IDE and platform.
 type Metadata struct {
-	IdeType    string `json:"ideType"`
-	Platform   string `json:"platform"`
-	PluginType string `json:"pluginType"`
+	IdeType    string `json:"ideType,omitempty"`
+	Platform   string `json:"platform,omitempty"`
+	PluginType string `json:"pluginType,omitempty"`
 }
 
 // LoadCodeAssistResponse represents the response from the loadCodeAssist endpoint.
@@ -177,6 +177,8 @@ type LoadCodeAssistResponse struct {
 	CloudAICompanionProject string `json:"cloudaicompanionProject"`
 	GCPManaged              bool   `json:"gcpManaged"`
 	ManageSubscriptionURI   string `json:"manageSubscriptionUri"`
+	UpgradeSubscriptionURI  string `json:"upgradeSubscriptionUri"`
+	PaidTier                *Tier  `json:"paidTier,omitempty"`
 }
 
 // Tier represents a tier of service.
@@ -187,6 +189,18 @@ type Tier struct {
 	UserDefinedCloudAICompanionProject bool                   `json:"userDefinedCloudaicompanionProject"`
 	PrivacyNotice                      map[string]interface{} `json:"privacyNotice"`
 	IsDefault                          bool                   `json:"isDefault,omitempty"`
+	UpgradeSubscriptionURI             string                 `json:"upgradeSubscriptionUri,omitempty"`
+	UpgradeSubscriptionText            string                 `json:"upgradeSubscriptionText,omitempty"`
+	UpgradeSubscriptionType            string                 `json:"upgradeSubscriptionType,omitempty"`
+	UsesGCPTOS                         bool                   `json:"usesGcpTos,omitempty"`
+	AvailableCredits                   []Credit               `json:"availableCredits,omitempty"`
+}
+
+// Credit represents credits available on a paid tier.
+type Credit struct {
+	CreditType                  string `json:"creditType"`
+	CreditAmount                string `json:"creditAmount"`
+	MinimumCreditAmountForUsage string `json:"minimumCreditAmountForUsage"`
 }
 
 // GenerateContentRequest represents the request body for the generateContent endpoint.

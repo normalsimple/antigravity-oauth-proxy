@@ -30,9 +30,29 @@ func main() {
 		tier := fmt.Sprintf("%s (%s)", loadAssistResponse.CurrentTier.Name, loadAssistResponse.CurrentTier.ID)
 		logger.Get().Info().
 			Str("tier", tier).
+			Str("tier_id", loadAssistResponse.CurrentTier.ID).
+			Str("tier_name", loadAssistResponse.CurrentTier.Name).
+			Str("tier_description", loadAssistResponse.CurrentTier.Description).
+			Int("allowed_tiers", len(loadAssistResponse.AllowedTiers)).
 			Str("project_id", loadAssistResponse.CloudAICompanionProject).
 			Bool("gcp_managed", loadAssistResponse.GCPManaged).
+			Str("upgrade_subscription_uri", loadAssistResponse.UpgradeSubscriptionURI).
 			Msg("Startup authentication check successful.")
+
+		if loadAssistResponse.PaidTier != nil {
+			paidTier := loadAssistResponse.PaidTier
+			logger.Get().Info().
+				Str("paid_tier_id", paidTier.ID).
+				Str("paid_tier_name", paidTier.Name).
+				Str("paid_tier_description", paidTier.Description).
+				Str("upgrade_subscription_uri", paidTier.UpgradeSubscriptionURI).
+				Str("upgrade_subscription_text", paidTier.UpgradeSubscriptionText).
+				Str("upgrade_subscription_type", paidTier.UpgradeSubscriptionType).
+				Interface("available_credits", paidTier.AvailableCredits).
+				Msg("Paid tier available.")
+		} else {
+			logger.Get().Info().Msg("No paid tier returned by loadCodeAssist.")
+		}
 	}
 
 	// Discover project ID
