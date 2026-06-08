@@ -7,18 +7,22 @@ import (
 )
 
 const (
-	modelGemini31ProLow      = "gemini-3.1-pro-low"
-	modelGemini31ProHigh     = "gemini-3.1-pro-high"
-	modelGemini3Flash        = "gemini-3-flash"
-	modelGemini35FlashLow    = "gemini-3.5-flash-extra-low"
-	modelGemini35FlashMedium = "gemini-3.5-flash-low"
-	modelGemini35FlashHigh   = "gemini-3-flash-agent"
-	modelGemini31FlashLite   = "gemini-3.1-flash-lite"
-	modelGemini31FlashImage  = "gemini-3.1-flash-image"
+	modelGemini31ProLow       = "gemini-3.1-pro-low"
+	modelGemini31ProHigh      = "gemini-3.1-pro-high"
+	modelGemini31ProHighAgent = "gemini-pro-agent"
+	modelGemini3Flash         = "gemini-3-flash"
+	modelGemini35FlashLow     = "gemini-3.5-flash-extra-low"
+	modelGemini35FlashMedium  = "gemini-3.5-flash-low"
+	modelGemini35FlashHigh    = "gemini-3-flash-agent"
+	modelGemini31FlashLite    = "gemini-3.1-flash-lite"
+	modelGemini31FlashImage   = "gemini-3.1-flash-image"
 )
 
 func resolveModelForThinking(model string, req antigravity.GeminiInternalRequest) string {
 	modelLower := strings.ToLower(strings.TrimSpace(model))
+	if modelLower == modelGemini31ProHigh {
+		return modelGemini31ProHighAgent
+	}
 	if isKnownUpstreamModelID(modelLower) {
 		return modelLower
 	}
@@ -29,7 +33,7 @@ func resolveModelForThinking(model string, req antigravity.GeminiInternalRequest
 	case isGemini31ProModel(modelLower):
 		switch thinkingLevel {
 		case "high":
-			return modelGemini31ProHigh
+			return modelGemini31ProHighAgent
 		case "minimal", "low", "medium", "":
 			return modelGemini31ProLow
 		default:
@@ -78,7 +82,7 @@ func isKnownUpstreamModelID(modelLower string) bool {
 		modelGemini31ProLow,
 		modelGemini35FlashLow,
 		modelGemini35FlashMedium,
-		"gemini-pro-agent":
+		modelGemini31ProHighAgent:
 		return true
 	default:
 		return false

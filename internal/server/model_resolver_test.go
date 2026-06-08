@@ -32,16 +32,16 @@ func TestResolveModelForThinking(t *testing.T) {
 			expected:      "gemini-3.1-pro-low",
 		},
 		{
-			name:          "Gemini 3.1 Pro high",
+			name:          "Gemini 3.1 Pro high uses agent model",
 			model:         "gemini-3.1-pro-preview",
 			thinkingLevel: "HIGH",
-			expected:      "gemini-3.1-pro-high",
+			expected:      "gemini-pro-agent",
 		},
 		{
-			name:          "Exact Gemini 3.1 Pro high stays high",
+			name:          "Exact Gemini 3.1 Pro high uses agent model",
 			model:         "gemini-3.1-pro-high",
 			thinkingLevel: "LOW",
-			expected:      "gemini-3.1-pro-high",
+			expected:      "gemini-pro-agent",
 		},
 		{
 			name:          "Gemini 3 Flash ignores thinking",
