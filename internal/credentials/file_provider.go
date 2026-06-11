@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dvcrn/antigravity-proxy/internal/env"
-	"github.com/dvcrn/antigravity-proxy/internal/logger"
+	"github.com/dvcrn/antigravity-oauth-proxy/internal/env"
+	"github.com/dvcrn/antigravity-oauth-proxy/internal/logger"
 )
 
 // FileProvider implements CredentialsProvider using file-based storage
@@ -45,11 +45,11 @@ func (f *FileProvider) determineFilePath() error {
 		return nil
 	}
 
-	// 2. Use default path: ~/.config/antigravity-proxy/oauth_creds.json
+	// 2. Use default path: ~/.config/antigravity-oauth-proxy/oauth_creds.json
 	// We intentionally prefer ~/.config for parity with other antigravity tools.
 	homeDir, err := os.UserHomeDir()
 	if err == nil {
-		f.filePath = filepath.Join(homeDir, ".config", "antigravity-proxy", "oauth_creds.json")
+		f.filePath = filepath.Join(homeDir, ".config", "antigravity-oauth-proxy", "oauth_creds.json")
 		return nil
 	}
 
@@ -58,7 +58,7 @@ func (f *FileProvider) determineFilePath() error {
 	if err != nil {
 		return fmt.Errorf("failed to get home or config directory: %w", err)
 	}
-	f.filePath = filepath.Join(configDir, "antigravity-proxy", "oauth_creds.json")
+	f.filePath = filepath.Join(configDir, "antigravity-oauth-proxy", "oauth_creds.json")
 	return nil
 }
 
