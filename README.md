@@ -138,7 +138,7 @@ For production deployment on Cloudflare Workers:
 
    ```toml
    kv_namespaces = [
-     { binding = "antigravity_proxy_kv", id = "YOUR_NAMESPACE_ID_HERE" }
+     { binding = "gemini_code_assist_proxy_kv", id = "YOUR_NAMESPACE_ID_HERE" }
    ]
    ```
 
