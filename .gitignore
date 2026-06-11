@@ -14,7 +14,4 @@ dist
 npm/antigravity-oauth-proxy
 npm/antigravity-oauth-proxy.exe
 
-com.antigravity-oauth-proxy.plist
-com.gemini-proxy.plist
-/gemini-proxy
-/gemini-code-assist-proxy
+sh.d.antigravity-oauth-proxy.plist

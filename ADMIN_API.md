@@ -1,6 +1,6 @@
 # Admin API Documentation
 
-This document describes how to set up and use the Admin API for managing OAuth credentials in the Cloudflare Workers deployment of gemini-proxy.
+This document describes how to set up and use the Admin API for managing OAuth credentials in the Cloudflare Workers deployment of antigravity-oauth-proxy.
 
 ## Overview
 
